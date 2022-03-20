@@ -2,6 +2,7 @@ import math
 import numpy
 
 from networkx import DiGraph
+from networkx import nx_agraph
 
 
 def route_len(g: DiGraph):
@@ -23,3 +24,12 @@ def closest_neighbor(g: DiGraph, v, forbidden: set):
 			closest_node = u
 
 	return closest_node
+
+
+def draw_route_graph(graph: DiGraph, file: str):
+	drawable = nx_agraph.to_agraph(graph)
+	for e in graph.edges(data = True):
+		drawable_edge = drawable.get_edge(e[0], e[1])
+		drawable_edge.attr['label'] = e[2]['cost']
+	drawable.layout('dot')
+	drawable.draw(file)
