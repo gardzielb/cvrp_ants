@@ -12,3 +12,25 @@ class CVRPSolver(ABC):
 
 class CVRPException(Exception):
 	pass
+
+
+class Truck:
+	def __init__(self, capacity: float, route_limit: float):
+		self.capacity = capacity
+		self.route_limit = route_limit
+		self.load = 0
+		self.route = 0
+
+	def can_load(self, load: float) -> bool:
+		return self.load + load <= self.capacity
+
+	def can_drive(self, dist: float) -> bool:
+		return self.route + dist <= self.route_limit
+
+	def update(self, load: float, dist: float):
+		self.load += load
+		self.route += dist
+
+	def reset(self):
+		self.load = 0
+		self.route = 0
