@@ -1,9 +1,15 @@
 import math
+import numpy
 
 from networkx import DiGraph
 
 
-def closest_neighbor(g: DiGraph, v, forbidden: set) -> tuple:
+def route_len(g: DiGraph):
+	edge_costs = [e[2]['cost'] for e in g.edges(data = True)]
+	return numpy.sum(edge_costs)
+
+
+def closest_neighbor(g: DiGraph, v, forbidden: set):
 	min_dist = math.inf
 	closest_node = None
 
@@ -16,4 +22,4 @@ def closest_neighbor(g: DiGraph, v, forbidden: set) -> tuple:
 			min_dist = dist
 			closest_node = u
 
-	return closest_node, min_dist
+	return closest_node
