@@ -28,8 +28,15 @@ def closest_neighbor(g: DiGraph, v, forbidden: set):
 
 def draw_route_graph(graph: DiGraph, file: str):
 	drawable = nx_agraph.to_agraph(graph)
+
 	for e in graph.edges(data = True):
 		drawable_edge = drawable.get_edge(e[0], e[1])
 		drawable_edge.attr['label'] = e[2]['cost']
+
+	for v in graph.nodes(data = True):
+		drawable_node = drawable.get_node(v[0])
+		demand = v[1]['demand']
+		drawable_node.attr['label'] = f'{v[0]}: {demand}'
+
 	drawable.layout('dot')
 	drawable.draw(file)

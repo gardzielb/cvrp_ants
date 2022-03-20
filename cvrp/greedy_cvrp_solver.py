@@ -31,13 +31,15 @@ class GreedyCVRPSolver(CVRPSolver):
 				else:
 					next_node = sink
 					truck_load = 0
+			else:
+				dist = graph.edges[current_node, next_node]['cost']
+				truck_load += next_client_demand
+				visited_nodes.add(next_node)
 
 			solution.add_edge(current_node, next_node, cost = graph.edges[current_node, next_node]['cost'])
-			truck_load += next_client_demand
-
 			current_node = next_node
-			visited_nodes.add(next_node)
 
-		solution.add_edge(current_node, sink, cost = graph.edges[current_node, sink]['cost'])
+		if current_node != sink:
+			solution.add_edge(current_node, sink, cost = graph.edges[current_node, sink]['cost'])
 
 		return solution
