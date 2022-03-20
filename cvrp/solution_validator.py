@@ -9,7 +9,7 @@ def is_cvrp_solution_valid(solution: DiGraph, truck_capacity: float, truck_route
 	for c in solution.neighbors(source):
 		current_node = c
 		truck_load = 0
-		truck_route = 0
+		truck_route = solution.edges[source, c]['cost']
 
 		while current_node != sink:
 			if current_node in visited_clients:
