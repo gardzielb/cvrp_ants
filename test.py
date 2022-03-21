@@ -1,6 +1,6 @@
 import csv
 import random
-
+import os
 import numpy
 
 from cvrp.cvrp_solver import CVRPDefinition, CVRPSolver
@@ -38,7 +38,10 @@ if __name__ == '__main__':
 			rlen_std_dev = numpy.std(route_lengths)
 			results.append(TestResult(cvrp, solver, rlen_avg, rlen_std_dev))
 
-	with open('results.csv', mode = 'wt') as file:
+	if not os.path.exists('out'):
+		os.mkdir('out')
+
+	with open('out/results.csv', mode = 'wt') as file:
 		csv_writer = csv.writer(file)
 		csv_writer.writerow(['Clients count', 'solver', 'truck capacity', 'truck route limit'])
 

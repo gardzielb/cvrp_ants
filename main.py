@@ -1,3 +1,5 @@
+import os
+
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
@@ -18,7 +20,10 @@ if __name__ == '__main__':
 	)
 	print(f'Route length = {route_len(solution)}, valid = {is_valid}')
 
-	draw_route_graph(solution, file = 'solution.png')
-	img = mpimg.imread('solution.png')
+	if not os.path.exists('out'):
+		os.mkdir('out')
+
+	draw_route_graph(solution, file = 'out/solution.png')
+	img = mpimg.imread('out/solution.png')
 	imgplot = plt.imshow(img)
 	plt.show()

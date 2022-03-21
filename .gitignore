@@ -116,5 +116,5 @@ dmypy.json
 # Pycharm
 .idea
 
-# graph drawings
-*.png
+# work files
+out/
