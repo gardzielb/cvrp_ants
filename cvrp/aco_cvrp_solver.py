@@ -5,28 +5,28 @@ from typing import Tuple, List
 import numpy
 from networkx import DiGraph
 
-from .cvrp_solver import CVRPSolver, Truck
+from .cvrp_solver import CVRPSolver, Truck, CVRPDefinition
 from .util import route_len
 
 
 class AntColonyCVRPSolver(CVRPSolver):
 	def __init__(
-			self, ants_count: int, iterations: int, rng_seed: int, init_pheromone = 0.0, pheromone_factor = 10.0,
-			evaporation_factor = 0.1, alpha = 1.0, beta = 2.3, rand_chance = 0.1
+			self, iterations: int, init_pheromone = 0.0, pheromone_factor = 10.0, evaporation_factor = 0.1, alpha = 1.0,
+			beta = 2.3, rand_chance = 0.1
 	):
-		self.ants_count = ants_count
 		self.init_pheromone = init_pheromone
 		self.pheromone_factor = pheromone_factor
 		self.evaporation_factor = evaporation_factor
 		self.alpha = alpha
 		self.beta = beta
 		self.iterations = iterations
-		self.rng_seed = rng_seed
 		self.rand_chance = rand_chance
 
-	def solve_cvrp(self, graph: DiGraph, truck_capacity: float, truck_route_limit: float) -> DiGraph:
-		random.seed(self.rng_seed)
-		g_work = graph.copy()
+	def get_info(self) -> str:
+		return f'ACO {self.iterations} it'
+
+	def solve_cvrp(self, problem: CVRPDefinition) -> DiGraph:
+		g_work = problem.graph.copy()
 
 		for e in g_work.edges(data = True):
 			e[2]['pheromone'] = self.init_pheromone
@@ -37,8 +37,8 @@ class AntColonyCVRPSolver(CVRPSolver):
 		for i in range(self.iterations):
 			routes = []
 
-			for a in range(self.ants_count):
-				route = self.__find_ant_route__(g_work, truck_capacity, truck_route_limit)
+			for ant in range(len(g_work.nodes)):
+				route = self.__find_ant_route__(g_work, problem.truck_capacity, problem.truck_route_limit)
 
 				rlen = route_len(route)
 				if rlen < best_route_len:

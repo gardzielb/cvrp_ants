@@ -1,16 +1,26 @@
+import math
 from abc import ABC, abstractmethod
-from typing import Tuple
 
 from networkx import DiGraph
-
 
 SOURCE = 'Source'
 SINK = 'Sink'
 
 
+class CVRPDefinition:
+	def __init__(self, graph: DiGraph, truck_capacity: float, truck_route_limit = math.inf):
+		self.graph = graph
+		self.truck_capacity = truck_capacity
+		self.truck_route_limit = truck_route_limit
+
+
 class CVRPSolver(ABC):
 	@abstractmethod
-	def solve_cvrp(self, graph: DiGraph, truck_capacity: float, truck_route_limit: float) -> DiGraph:
+	def solve_cvrp(self, problem: CVRPDefinition) -> DiGraph:
+		pass
+
+	@abstractmethod
+	def get_info(self) -> str:
 		pass
 
 
