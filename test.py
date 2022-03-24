@@ -21,7 +21,11 @@ class TestResult:
 
 
 cvrp_instances = ['P-n16-k8.vrp', 'A-n32-k5.vrp']
-cvrp_solvers = [GreedyCVRPSolver(), AntColonyCVRPSolver(iterations = 20)]
+cvrp_solvers = [
+	GreedyCVRPSolver(),
+	AntColonyCVRPSolver(iterations = 20),
+	AntColonyCVRPSolver(iterations = 20, candidate_fraction = 0.25)
+]
 
 if __name__ == '__main__':
 	results = []
@@ -31,7 +35,7 @@ if __name__ == '__main__':
 			cvrp = load_augerat_example(instance)
 			route_lengths = []
 
-			for i in range(25):
+			for i in range(10):
 				random.seed(i * 100)
 				solution = solver.solve_cvrp(cvrp)
 				route_lengths.append(route_len(solution))
