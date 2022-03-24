@@ -1,5 +1,8 @@
 import math
+
+import networkx
 import numpy
+from matplotlib import pyplot as plt
 
 from networkx import DiGraph
 from networkx import nx_agraph
@@ -26,14 +29,19 @@ def closest_neighbor(g: DiGraph, v, forbidden: set):
 	return closest_node
 
 
+def draw_route_graph_geo(graph: DiGraph, file: str):
+	x = list(networkx.get_node_attributes(graph, 'x').values())
+	y = list(networkx.get_node_attributes(graph, 'y').values())
+	positions = dict(zip(graph.nodes, list(zip(x, y))))
+	networkx.draw_networkx(graph, positions, with_labels = True)
+	plt.savefig(file)
+
+
 def draw_route_graph(graph: DiGraph, file: str):
 	drawable = nx_agraph.to_agraph(graph)
 
 	for e in graph.edges(data = True):
 		drawable_edge = drawable.get_edge(e[0], e[1])
-		# cost = e[2]['cost']
-		# pheromone = e[2]['pheromone']
-		# drawable_edge.attr['label'] = f'{cost}: {pheromone}'
 		drawable_edge.attr['label'] = e[2]['cost']
 
 	for v in graph.nodes(data = True):

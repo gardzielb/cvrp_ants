@@ -3,8 +3,7 @@ from abc import ABC, abstractmethod
 
 from networkx import DiGraph
 
-SOURCE = 'Source'
-SINK = 'Sink'
+DEPOT = 'Depot'
 
 
 class CVRPDefinition:
@@ -40,7 +39,7 @@ class Truck:
 		self.graph = graph
 		self.capacity = capacity
 		self.route_limit = route_limit
-		self.current_node = SOURCE
+		self.current_node = DEPOT
 		self.load = 0
 		self.route = 0
 
@@ -50,7 +49,7 @@ class Truck:
 			return self.__return_to_depot__()
 
 		dist_to_target = self.graph.edges[self.current_node, target]['cost']
-		dist_to_depot = dist_to_target + self.graph.edges[target, SINK]['cost']
+		dist_to_depot = dist_to_target + self.graph.edges[target, DEPOT]['cost']
 		if self.route + dist_to_depot > self.route_limit:
 			return self.__return_to_depot__()
 
@@ -65,18 +64,18 @@ class Truck:
 		return move
 
 	def __return_to_depot__(self) -> TruckMove:
-		if self.current_node == SOURCE:
+		if self.current_node == DEPOT:
 			raise CVRPException('Invalid problem definition: cannot move to any client from depot')
-		elif SINK not in self.graph.neighbors(self.current_node):
+		elif DEPOT not in self.graph.neighbors(self.current_node):
 			raise CVRPException(f'Invalid problem definition: no route to depot from client {self.current_node}')
 		else:
 			move = TruckMove(
-				src = self.current_node, dest = SINK, cost = self.graph.edges[self.current_node, SINK]['cost']
+				src = self.current_node, dest = DEPOT, cost = self.graph.edges[self.current_node, DEPOT]['cost']
 			)
 			self.__reset__()
 			return move
 
 	def __reset__(self):
-		self.current_node = SOURCE
+		self.current_node = DEPOT
 		self.load = 0
 		self.route = 0

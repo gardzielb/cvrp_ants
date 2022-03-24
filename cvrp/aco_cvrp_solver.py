@@ -2,7 +2,6 @@ import math
 import random
 from typing import Tuple, List
 
-import numpy
 from networkx import DiGraph
 
 from .cvrp_solver import CVRPSolver, Truck, CVRPDefinition
@@ -52,22 +51,21 @@ class AntColonyCVRPSolver(CVRPSolver):
 		return best_route
 
 	def __find_ant_route__(self, graph: DiGraph, truck_capacity: float, truck_route_limit: float):
-		source = 'Source'
-		sink = 'Sink'
+		depot = 'Depot'
 		solution = DiGraph()
 		solution.add_nodes_from(graph.nodes(data = True))
-		visited_nodes = {source, sink}
+		visited_nodes = {depot}
 		truck = Truck(graph, truck_capacity, truck_route_limit)
 
 		while len(visited_nodes) < len(list(graph.nodes)):
 			next_node = self.__next_node__(graph, truck.current_node, forbidden = visited_nodes)
 			move = truck.make_move(next_node)
 			solution.add_edge(move.src, move.dest, cost = move.cost)
-			if move.dest != sink:
+			if move.dest != depot:
 				visited_nodes.add(move.dest)
 
-		if truck.current_node != sink:
-			solution.add_edge(truck.current_node, sink, cost = graph.edges[truck.current_node, sink]['cost'])
+		if truck.current_node != depot:
+			solution.add_edge(truck.current_node, depot, cost = graph.edges[truck.current_node, depot]['cost'])
 
 		return solution
 

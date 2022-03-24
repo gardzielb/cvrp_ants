@@ -12,14 +12,16 @@ from cvrp.util import route_len
 
 class TestResult:
 	def __init__(self, problem: CVRPDefinition, solver: CVRPSolver, rlen_avg: float, rlen_std_dev: float):
-		self.clients_count = len(problem.graph.nodes) - 2
+		self.clients_count = len(problem.graph.nodes) - 1
+		self.truck_capacity = problem.truck_capacity
+		self.truck_route_limit = problem.truck_route_limit
 		self.solver_desc = solver.get_info()
 		self.rlen_avg = rlen_avg
 		self.rlen_std_dev = rlen_std_dev
 
 
-cvrp_instances = ['P-n16-k8.vrp']
-cvrp_solvers = [GreedyCVRPSolver(), AntColonyCVRPSolver(iterations = 100)]
+cvrp_instances = ['P-n16-k8.vrp', 'A-n32-k5.vrp']
+cvrp_solvers = [GreedyCVRPSolver(), AntColonyCVRPSolver(iterations = 20)]
 
 if __name__ == '__main__':
 	results = []
@@ -43,8 +45,13 @@ if __name__ == '__main__':
 
 	with open('out/results.csv', mode = 'wt') as file:
 		csv_writer = csv.writer(file)
-		csv_writer.writerow(['Clients count', 'solver', 'truck capacity', 'truck route limit'])
+		csv_writer.writerow(
+			['Clients count', 'solver', 'truck capacity', 'truck route limit', 'avg route len', 'std deviation']
+		)
 
 		for result in results:
-			row = [result.clients_count, result.solver_desc, result.rlen_avg, result.rlen_std_dev]
+			row = [
+				result.clients_count, result.solver_desc, result.truck_capacity, result.truck_route_limit,
+				result.rlen_avg, result.rlen_std_dev
+			]
 			csv_writer.writerow(row)

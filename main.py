@@ -1,21 +1,17 @@
 import os
 import random
 
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import networkx
-from networkx import DiGraph
-
+from cvrp.aco_cvrp_solver import AntColonyCVRPSolver
 from cvrp.augerat_loader import load_augerat_example
 from cvrp.greedy_cvrp_solver import GreedyCVRPSolver
 from cvrp.solution_validator import is_cvrp_solution_valid
-from cvrp.util import route_len, draw_route_graph
-from cvrp.aco_cvrp_solver import AntColonyCVRPSolver
+from cvrp.util import route_len, draw_route_graph, draw_route_graph_geo
 
 if __name__ == '__main__':
-	problem = load_augerat_example('P-n16-k8.vrp')
+	# problem = load_augerat_example('P-n16-k8.vrp')
+	problem = load_augerat_example('A-n32-k5.vrp')
 	# solver = GreedyCVRPSolver()
-	solver = AntColonyCVRPSolver(iterations = 10)
+	solver = AntColonyCVRPSolver(iterations = 20)
 
 	random.seed(2137)
 	solution = solver.solve_cvrp(problem)
@@ -30,13 +26,5 @@ if __name__ == '__main__':
 
 	print(list(solution.edges))
 
-	x = list(networkx.get_node_attributes(solution, 'x').values())
-	y = list(networkx.get_node_attributes(solution, 'y').values())
-	positions = dict(zip(solution.nodes, list(zip(x, y))))
-	networkx.draw_networkx(solution, positions, with_labels = True)
-	# plt.show()
-
 	draw_route_graph(solution, file = 'out/solution.png')
-	# img = mpimg.imread('out/solution.png')
-	# imgplot = plt.imshow(img)
-	# plt.show()
+	draw_route_graph_geo(solution, file = 'out/solution_geo.png')
