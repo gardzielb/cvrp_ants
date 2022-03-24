@@ -31,6 +31,9 @@ def draw_route_graph(graph: DiGraph, file: str):
 
 	for e in graph.edges(data = True):
 		drawable_edge = drawable.get_edge(e[0], e[1])
+		# cost = e[2]['cost']
+		# pheromone = e[2]['pheromone']
+		# drawable_edge.attr['label'] = f'{cost}: {pheromone}'
 		drawable_edge.attr['label'] = e[2]['cost']
 
 	for v in graph.nodes(data = True):

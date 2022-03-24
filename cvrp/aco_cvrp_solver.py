@@ -11,7 +11,7 @@ from .util import route_len
 
 class AntColonyCVRPSolver(CVRPSolver):
 	def __init__(
-			self, iterations: int, init_pheromone = 0.0, pheromone_factor = 10.0, evaporation_factor = 0.1, alpha = 1.0,
+			self, iterations: int, init_pheromone = 0.0, pheromone_factor = 1.0, evaporation_factor = 0.1, alpha = 1.0,
 			beta = 2.3, rand_chance = 0.1
 	):
 		self.init_pheromone = init_pheromone
@@ -79,7 +79,8 @@ class AntColonyCVRPSolver(CVRPSolver):
 			return random.choice(list(potential_targets))
 		else:
 			node_ranking = [(v, self.__ant_decision_factor__(graph, current_node, v)) for v in potential_targets]
-			return numpy.max(node_ranking)
+			v, _ = max(node_ranking, key = lambda v_record: v_record[1])
+			return v
 
 	def __ant_decision_factor__(self, graph: DiGraph, u, v):
 		e = graph.edges[u, v]

@@ -18,7 +18,7 @@ class TestResult:
 		self.rlen_std_dev = rlen_std_dev
 
 
-cvrp_instances = ['A-n32-k5.vrp']
+cvrp_instances = ['P-n16-k8.vrp']
 cvrp_solvers = [GreedyCVRPSolver(), AntColonyCVRPSolver(iterations = 100)]
 
 if __name__ == '__main__':
