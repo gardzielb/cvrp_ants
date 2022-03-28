@@ -21,8 +21,7 @@ class GreedyCVRPSolver(CVRPSolver):
 			next_node = closest_neighbor(problem.graph, truck.current_node, forbidden = visited_nodes)
 			move = truck.make_move(next_node)
 			solution.add_edge(move.src, move.dest, cost = move.cost)
-			if move.dest != depot:
-				visited_nodes.add(move.dest)
+			visited_nodes.add(move.dest)
 
 		if truck.current_node != depot:
 			solution.add_edge(truck.current_node, depot, cost = problem.graph.edges[truck.current_node, depot]['cost'])

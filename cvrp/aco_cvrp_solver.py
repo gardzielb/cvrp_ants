@@ -1,3 +1,4 @@
+import itertools
 import math
 
 from typing import Tuple, List
@@ -6,7 +7,7 @@ import numpy.random
 from networkx import DiGraph
 from tqdm import trange
 
-from .cvrp_solver import CVRPSolver, Truck, CVRPDefinition
+from .cvrp_solver import CVRPSolver, Truck, CVRPDefinition, TruckMove
 from .util import route_len
 
 DEPOT = 'Depot'
@@ -14,9 +15,11 @@ DEPOT = 'Depot'
 
 class AntColonyCVRPSolver(CVRPSolver):
 	def __init__(
-			self, iterations: int, init_pheromone = 1.0, pheromone_factor = 1.0, evaporation_factor = 0.1, alpha = 1.0,
-			beta = 2.3, rand_chance = 0.1, candidate_fraction = 1.0, permute_routes = False
+			self, iterations: int, ants_per_customer = 1, init_pheromone = 1.0, pheromone_factor = 1.0,
+			evaporation_factor = 0.1, alpha = 1.0, beta = 2.3, rand_chance = 0.1, candidate_fraction = 1.0,
+			permute_routes = False
 	):
+		self.ants_per_customer = ants_per_customer
 		self.init_pheromone = init_pheromone
 		self.pheromone_factor = pheromone_factor
 		self.evaporation_factor = evaporation_factor
@@ -48,7 +51,7 @@ class AntColonyCVRPSolver(CVRPSolver):
 		for _ in trange(self.iterations, desc = f'{self.get_info()} | {problem.instance_name}'):
 			routes = []
 
-			for ant in range(len(g_work.nodes)):
+			for ant in range(self.ants_per_customer * len(g_work.nodes)):
 				route = self.__find_ant_route__(g_work, problem.truck_capacity, problem.truck_route_limit)
 
 				rlen = route_len(route)
@@ -72,11 +75,42 @@ class AntColonyCVRPSolver(CVRPSolver):
 			next_node = self.__next_node__(graph, truck.current_node, forbidden = visited_nodes)
 			move = truck.make_move(next_node)
 			solution.add_edge(move.src, move.dest, cost = move.cost)
-			if move.dest != DEPOT:
-				visited_nodes.add(move.dest)
+			visited_nodes.add(move.dest)
 
 		if truck.current_node != DEPOT:
 			solution.add_edge(truck.current_node, DEPOT, cost = graph.edges[truck.current_node, DEPOT]['cost'])
+
+		if self.permute_routes:
+			permuted_solution = DiGraph()
+			permuted_solution.add_nodes_from(solution.nodes(data = True))
+
+			for c in solution.neighbors(DEPOT):
+				route = []
+				while c != DEPOT:
+					route.append(c)
+					c = list(solution.neighbors(c))[0]
+
+				if len(route) < 7:
+					best_len = math.inf
+					for route_perm in itertools.permutations(route):
+						rlen = 0
+						for i in range(1, len(route_perm)):
+							rlen += graph.edges[route_perm[i - 1], route_perm[i]]['cost']
+						rlen += graph.edges[DEPOT, route_perm[0]]['cost']
+						rlen += graph.edges[route_perm[-1], DEPOT]['cost']
+						if rlen < best_len:
+							route = list(route_perm)
+							best_len = rlen
+
+				for i in range(1, len(route)):
+					src = route[i - 1]
+					dest = route[i]
+					permuted_solution.add_edge(src, dest, cost = graph.edges[src, dest]['cost'])
+
+				permuted_solution.add_edge(DEPOT, route[0], cost = graph.edges[DEPOT, route[0]]['cost'])
+				permuted_solution.add_edge(route[-1], DEPOT, cost = graph.edges[route[-1], DEPOT]['cost'])
+
+			return permuted_solution
 
 		return solution
 

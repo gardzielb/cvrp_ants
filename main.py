@@ -9,10 +9,11 @@ from cvrp.util import route_len, draw_route_graph, draw_route_graph_geo
 
 if __name__ == '__main__':
 	# problem = load_augerat_example('P-n16-k8.vrp')
-	problem = load_augerat_example('A-n32-k5.vrp')
+	problem = load_augerat_example('A-n33-k5.vrp')
 	# solver = GreedyCVRPSolver()
 	solver = AntColonyCVRPSolver(iterations = 500)
-	# solver = AntColonyCVRPSolver(iterations = 1000, candidate_fraction = 0.25)
+	# solver = AntColonyCVRPSolver(iterations = 500, permute_routes = True)
+	# solver = AntColonyCVRPSolver(iterations = 500, candidate_fraction = 0.25)
 
 	numpy.random.seed(2137)
 	solution = solver.solve_cvrp(problem)
@@ -24,8 +25,6 @@ if __name__ == '__main__':
 
 	if not os.path.exists('out'):
 		os.mkdir('out')
-
-	print(list(solution.edges))
 
 	draw_route_graph(solution, file = 'out/solution.png')
 	draw_route_graph_geo(solution, file = 'out/solution_geo.png')

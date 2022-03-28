@@ -34,6 +34,9 @@ class TruckMove:
 		self.dest = dest
 		self.cost = cost
 
+	def __str__(self):
+		return f'({self.src}, {self.dest}, cost = {self.cost})'
+
 
 class Truck:
 	def __init__(self, graph: DiGraph, capacity: float, route_limit: float):

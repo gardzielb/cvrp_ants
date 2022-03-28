@@ -1,6 +1,7 @@
 import csv
 import os
 import numpy
+import numpy.random
 
 from cvrp.cvrp_solver import CVRPDefinition, CVRPSolver
 from cvrp.greedy_cvrp_solver import GreedyCVRPSolver
@@ -21,13 +22,16 @@ class TestResult:
 
 cvrp_instances = [
 	'P-n16-k8.vrp',
-	# 'A-n32-k5.vrp'
+	'A-n32-k5.vrp'
 ]
 
 cvrp_solvers = [
 	GreedyCVRPSolver(),
-	AntColonyCVRPSolver(iterations = 500),
-	# AntColonyCVRPSolver(iterations = 2500, candidate_fraction = 0.25)
+	AntColonyCVRPSolver(iterations = 1000),
+	AntColonyCVRPSolver(iterations = 5000),
+	AntColonyCVRPSolver(iterations = 4000, permute_routes = True),
+	AntColonyCVRPSolver(iterations = 3000, candidate_fraction = 0.25),
+	AntColonyCVRPSolver(iterations = 2500, ants_per_customer = 2)
 ]
 
 if __name__ == '__main__':
@@ -38,7 +42,7 @@ if __name__ == '__main__':
 			cvrp = load_augerat_example(instance)
 			route_lengths = []
 
-			for i in range(2):
+			for i in range(3):
 				numpy.random.seed(i * 100)
 				solution = solver.solve_cvrp(cvrp)
 				route_lengths.append(route_len(solution))
@@ -53,7 +57,7 @@ if __name__ == '__main__':
 	with open('out/results.csv', mode = 'wt') as file:
 		csv_writer = csv.writer(file)
 		csv_writer.writerow(
-			['Clients count', 'solver', 'truck capacity', 'truck route limit', 'avg route len', 'std deviation']
+			['Customers count', 'solver', 'truck capacity', 'truck route limit', 'avg route len', 'std deviation']
 		)
 
 		for result in results:
