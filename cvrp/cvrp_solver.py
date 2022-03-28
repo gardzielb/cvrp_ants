@@ -7,10 +7,11 @@ DEPOT = 'Depot'
 
 
 class CVRPDefinition:
-	def __init__(self, graph: DiGraph, truck_capacity: float, truck_route_limit = math.inf):
+	def __init__(self, instance_name: str, graph: DiGraph, truck_capacity: float, truck_route_limit = math.inf):
 		self.graph = graph
 		self.truck_capacity = truck_capacity
 		self.truck_route_limit = truck_route_limit
+		self.instance_name = instance_name
 
 
 class CVRPSolver(ABC):

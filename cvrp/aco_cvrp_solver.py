@@ -1,8 +1,10 @@
 import math
-import random
+
 from typing import Tuple, List
 
+import numpy.random
 from networkx import DiGraph
+from tqdm import trange
 
 from .cvrp_solver import CVRPSolver, Truck, CVRPDefinition
 from .util import route_len
@@ -12,7 +14,7 @@ DEPOT = 'Depot'
 
 class AntColonyCVRPSolver(CVRPSolver):
 	def __init__(
-			self, iterations: int, init_pheromone = 0.0, pheromone_factor = 1.0, evaporation_factor = 0.1, alpha = 1.0,
+			self, iterations: int, init_pheromone = 1.0, pheromone_factor = 1.0, evaporation_factor = 0.1, alpha = 1.0,
 			beta = 2.3, rand_chance = 0.1, candidate_fraction = 1.0, permute_routes = False
 	):
 		self.init_pheromone = init_pheromone
@@ -43,7 +45,7 @@ class AntColonyCVRPSolver(CVRPSolver):
 		best_route = None
 		best_route_len = math.inf
 
-		for i in range(self.iterations):
+		for _ in trange(self.iterations, desc = f'{self.get_info()} | {problem.instance_name}'):
 			routes = []
 
 			for ant in range(len(g_work.nodes)):
@@ -79,16 +81,19 @@ class AntColonyCVRPSolver(CVRPSolver):
 		return solution
 
 	def __next_node__(self, graph: DiGraph, current_node, forbidden: set):
-		potential_targets = self.candidate_set_map[current_node] - forbidden
+		potential_targets = list(self.candidate_set_map[current_node] - forbidden)
 		if not potential_targets:
-			potential_targets = set(graph.neighbors(current_node)) - forbidden
+			potential_targets = list(set(graph.neighbors(current_node)) - forbidden)
 
-		choice = random.random()
+		node_weights = [self.__ant_decision_factor__(graph, current_node, v) for v in potential_targets]
+		choice = numpy.random.random()
+
 		if choice < self.rand_chance:
-			return random.choice(list(potential_targets))
+			w = numpy.array(node_weights) / sum(node_weights)
+			return numpy.random.choice(potential_targets, p = w)
 		else:
-			node_ranking = [(v, self.__ant_decision_factor__(graph, current_node, v)) for v in potential_targets]
-			v, _ = max(node_ranking, key = lambda v_record: v_record[1])
+			max_index = numpy.argmax(node_weights)
+			v = potential_targets[max_index]
 			return v
 
 	def __ant_decision_factor__(self, graph: DiGraph, u, v):

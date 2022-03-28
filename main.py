@@ -1,5 +1,5 @@
 import os
-import random
+import numpy
 
 from cvrp.aco_cvrp_solver import AntColonyCVRPSolver
 from cvrp.augerat_loader import load_augerat_example
@@ -11,9 +11,10 @@ if __name__ == '__main__':
 	# problem = load_augerat_example('P-n16-k8.vrp')
 	problem = load_augerat_example('A-n32-k5.vrp')
 	# solver = GreedyCVRPSolver()
-	solver = AntColonyCVRPSolver(iterations = 20)
+	solver = AntColonyCVRPSolver(iterations = 500)
+	# solver = AntColonyCVRPSolver(iterations = 1000, candidate_fraction = 0.25)
 
-	random.seed(2137)
+	numpy.random.seed(2137)
 	solution = solver.solve_cvrp(problem)
 
 	is_valid = is_cvrp_solution_valid(
