@@ -1,22 +1,31 @@
 import csv
 import os
-import numpy.random
 
-from cvrp.cvrp_solver import CVRPDefinition, CVRPSolver
-from cvrp.greedy_cvrp_solver import GreedyCVRPSolver
+import numpy.random
+from matplotlib import pyplot as plt
+
 from cvrp.aco_cvrp_solver import AntColonyCVRPSolver
 from cvrp.augerat_loader import load_augerat_example
+from cvrp.cvrp_solver import CVRPDefinition, CVRPSolver
+from cvrp.greedy_cvrp_solver import GreedyCVRPSolver
 from cvrp.util import route_len
 
 
 class TestResult:
 	def __init__(self, problem: CVRPDefinition, solver: CVRPSolver, rlen_avg: float, rlen_std_dev: float):
-		self.clients_count = len(problem.graph.nodes) - 1
+		self.customers_count = len(problem.graph.nodes) - 1
 		self.truck_capacity = problem.truck_capacity
 		self.truck_route_limit = problem.truck_route_limit
 		self.solver_desc = solver.get_info()
 		self.rlen_avg = rlen_avg
 		self.rlen_std_dev = rlen_std_dev
+
+
+class PlotData:
+	def __init__(self, filename: str):
+		self.filename = filename
+		self.labels = []
+		self.scores = []
 
 
 cvrp_instances = [
@@ -30,11 +39,11 @@ cvrp_instances = [
 
 cvrp_solvers = [
 	GreedyCVRPSolver(),
-	AntColonyCVRPSolver(iterations = 10),
-	AntColonyCVRPSolver(iterations = 50),
-	AntColonyCVRPSolver(iterations = 40, permute_routes = True),
-	AntColonyCVRPSolver(iterations = 30, candidate_fraction = 0.25),
-	AntColonyCVRPSolver(iterations = 25, ants_per_customer = 2)
+	AntColonyCVRPSolver(iterations = 1),
+	AntColonyCVRPSolver(iterations = 5),
+	AntColonyCVRPSolver(iterations = 4, permute_routes = True),
+	AntColonyCVRPSolver(iterations = 3, candidate_fraction = 0.25),
+	AntColonyCVRPSolver(iterations = 2, ants_per_customer = 2)
 ]
 
 if __name__ == '__main__':
@@ -45,7 +54,7 @@ if __name__ == '__main__':
 			cvrp = load_augerat_example(instance)
 			route_lengths = []
 
-			for i in range(3):
+			for i in range(1):
 				numpy.random.seed(i * 100)
 				solution = solver.solve_cvrp(cvrp)
 				route_lengths.append(route_len(solution))
@@ -65,7 +74,21 @@ if __name__ == '__main__':
 
 		for result in results:
 			row = [
-				result.clients_count, result.solver_desc, result.truck_capacity, result.truck_route_limit,
+				result.customers_count, result.solver_desc, result.truck_capacity, result.truck_route_limit,
 				result.rlen_avg, result.rlen_std_dev
 			]
 			csv_writer.writerow(row)
+
+	plot_data_map = {}
+	for result in results:
+		if result.customers_count not in plot_data_map:
+			plot_data_map[result.customers_count] = PlotData(filename = f'plot_n{result.customers_count}')
+
+		plot_data_map[result.customers_count].labels.append(result.solver_desc)
+		plot_data_map[result.customers_count].scores.append(result.rlen_avg)
+
+	# clear plots somehow?
+	for plot_data in plot_data_map.values():
+		plt.clf()
+		plt.bar(x = range(len(plot_data.labels)), height = plot_data.scores, tick_label = plot_data.labels)
+		plt.savefig(f'out/{plot_data.filename}.png')
