@@ -81,36 +81,7 @@ class AntColonyCVRPSolver(CVRPSolver):
 			solution.add_edge(truck.current_node, DEPOT, cost = graph.edges[truck.current_node, DEPOT]['cost'])
 
 		if self.permute_routes:
-			permuted_solution = DiGraph()
-			permuted_solution.add_nodes_from(solution.nodes(data = True))
-
-			for c in solution.neighbors(DEPOT):
-				route = []
-				while c != DEPOT:
-					route.append(c)
-					c = list(solution.neighbors(c))[0]
-
-				if len(route) < 7:
-					best_len = math.inf
-					for route_perm in itertools.permutations(route):
-						rlen = 0
-						for i in range(1, len(route_perm)):
-							rlen += graph.edges[route_perm[i - 1], route_perm[i]]['cost']
-						rlen += graph.edges[DEPOT, route_perm[0]]['cost']
-						rlen += graph.edges[route_perm[-1], DEPOT]['cost']
-						if rlen < best_len:
-							route = list(route_perm)
-							best_len = rlen
-
-				for i in range(1, len(route)):
-					src = route[i - 1]
-					dest = route[i]
-					permuted_solution.add_edge(src, dest, cost = graph.edges[src, dest]['cost'])
-
-				permuted_solution.add_edge(DEPOT, route[0], cost = graph.edges[DEPOT, route[0]]['cost'])
-				permuted_solution.add_edge(route[-1], DEPOT, cost = graph.edges[route[-1], DEPOT]['cost'])
-
-			return permuted_solution
+			return self.__permute_partial_routes__(solution, graph)
 
 		return solution
 
@@ -132,7 +103,8 @@ class AntColonyCVRPSolver(CVRPSolver):
 
 	def __ant_decision_factor__(self, graph: DiGraph, u, v):
 		e = graph.edges[u, v]
-		return e['pheromone'] ** self.alpha * (1 / e['cost']) ** self.beta
+		e_cost = 1 if e['cost'] == 0 else e['cost']
+		return e['pheromone'] ** self.alpha * (1 / e_cost) ** self.beta
 
 	def __update_pheromone__(self, graph: DiGraph, routes: List[Tuple[DiGraph, float]]):
 		for route, rlen in routes:
@@ -151,3 +123,35 @@ class AntColonyCVRPSolver(CVRPSolver):
 					graph.neighbors(v), key = lambda u: math.inf if u == DEPOT else graph.edges[v, u]['cost']
 				)
 				self.candidate_set_map[v] = set(sorted_neighbors[0:candidates_count])
+
+	def __permute_partial_routes__(self, solution: DiGraph, graph: DiGraph) -> DiGraph:
+		permuted_solution = DiGraph()
+		permuted_solution.add_nodes_from(solution.nodes(data = True))
+
+		for c in solution.neighbors(DEPOT):
+			route = []
+			while c != DEPOT:
+				route.append(c)
+				c = list(solution.neighbors(c))[0]
+
+			if len(route) < 7:
+				best_len = math.inf
+				for route_perm in itertools.permutations(route):
+					rlen = 0
+					for i in range(1, len(route_perm)):
+						rlen += graph.edges[route_perm[i - 1], route_perm[i]]['cost']
+					rlen += graph.edges[DEPOT, route_perm[0]]['cost']
+					rlen += graph.edges[route_perm[-1], DEPOT]['cost']
+					if rlen < best_len:
+						route = list(route_perm)
+						best_len = rlen
+
+			for i in range(1, len(route)):
+				src = route[i - 1]
+				dest = route[i]
+				permuted_solution.add_edge(src, dest, cost = graph.edges[src, dest]['cost'])
+
+			permuted_solution.add_edge(DEPOT, route[0], cost = graph.edges[DEPOT, route[0]]['cost'])
+			permuted_solution.add_edge(route[-1], DEPOT, cost = graph.edges[route[-1], DEPOT]['cost'])
+
+		return permuted_solution
