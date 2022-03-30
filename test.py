@@ -49,22 +49,22 @@ class PlotData:
 
 cvrp_instances = [
 	'B-n41-k6.vrp',
-	# 'A-n80-k10.vrp',
-	# 'A-n69-k9.vrp',
+	'A-n80-k10.vrp',
+	'A-n69-k9.vrp',
 	'B-n50-k8.vrp',
-	# 'A-n60-k9.vrp',
+	'A-n60-k9.vrp',
 	'A-n33-k5.vrp'
 ]
 
 cvrp_solvers = [
-	AntColonyCVRPSolver(iterations = 1),
-	AntColonyCVRPSolver(iterations = 5),
-	AntColonyCVRPSolver(iterations = 4, permute_routes = True),
-	AntColonyCVRPSolver(iterations = 3, candidate_fraction = 0.25),
-	AntColonyCVRPSolver(iterations = 2, ants_per_customer = 2)
+	AntColonyCVRPSolver(iterations = 1000),
+	AntColonyCVRPSolver(iterations = 5000),
+	AntColonyCVRPSolver(iterations = 4000, permute_routes = True),
+	AntColonyCVRPSolver(iterations = 3000, candidate_fraction = 0.25),
+	AntColonyCVRPSolver(iterations = 2500, ants_per_customer = 2)
 ]
 
-SAMPLE_COUNT = 3
+SAMPLE_COUNT = 15
 
 
 def run_test(test_case: Tuple[CVRPDefinition, AntColonyCVRPSolver, numpy.random.Generator]) -> TestResult:
@@ -99,7 +99,6 @@ if __name__ == '__main__':
 	})
 
 	df_avg = results_df \
-		.sort_values(by = 'customers_count') \
 		.groupby(['customers_count', 'solver_desc', 'truck_capacity', 'truck_route_limit'])['rlen'] \
 		.agg({ 'mean', 'std' }).reset_index()
 
