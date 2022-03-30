@@ -1,8 +1,14 @@
 import csv
+import itertools
 import os
-
+import multiprocessing
+import sys
 import numpy.random
+
+from typing import Tuple
 from matplotlib import pyplot as plt
+from tqdm import tqdm
+from pandas import DataFrame
 
 from cvrp.aco_cvrp_solver import AntColonyCVRPSolver
 from cvrp.augerat_loader import load_augerat_example
@@ -12,12 +18,12 @@ from cvrp.util import route_len
 
 
 class TestResult:
-	def __init__(self, problem: CVRPDefinition, solver: CVRPSolver, rlen_avg: float, rlen_std_dev: float):
+	def __init__(self, problem: CVRPDefinition, solver: CVRPSolver, rlen: float, rlen_std_dev = 0.0):
 		self.customers_count = len(problem.graph.nodes) - 1
 		self.truck_capacity = problem.truck_capacity
 		self.truck_route_limit = problem.truck_route_limit
 		self.solver_desc = solver.get_info()
-		self.rlen_avg = rlen_avg
+		self.rlen = rlen
 		self.rlen_std_dev = rlen_std_dev
 
 
@@ -38,7 +44,6 @@ cvrp_instances = [
 ]
 
 cvrp_solvers = [
-	GreedyCVRPSolver(),
 	AntColonyCVRPSolver(iterations = 1),
 	AntColonyCVRPSolver(iterations = 5),
 	AntColonyCVRPSolver(iterations = 4, permute_routes = True),
@@ -46,22 +51,35 @@ cvrp_solvers = [
 	AntColonyCVRPSolver(iterations = 2, ants_per_customer = 2)
 ]
 
+SAMPLE_COUNT = 5
+
+
+def run_test(test_case: Tuple[CVRPDefinition, AntColonyCVRPSolver, numpy.random.Generator]) -> TestResult:
+	problem = test_case[0]
+	solver = test_case[1]
+
+	solver.set_rng(rng = test_case[2])
+	solution = solver.solve_cvrp(problem)
+
+	return TestResult(problem, solver, route_len(solution))
+
+
 if __name__ == '__main__':
-	results = []
+	problems = [load_augerat_example(instance) for instance in cvrp_instances]
+	rngs = [numpy.random.default_rng() for _ in range(SAMPLE_COUNT)]
 
-	for solver in cvrp_solvers:
-		for instance in cvrp_instances:
-			cvrp = load_augerat_example(instance)
-			route_lengths = []
+	process_count = int(sys.argv[1])
+	with multiprocessing.Pool(process_count) as process_pool:
+		results = process_pool.map(run_test, itertools.product(problems, cvrp_solvers, rngs))
 
-			for i in range(1):
-				numpy.random.seed(i * 100)
-				solution = solver.solve_cvrp(cvrp)
-				route_lengths.append(route_len(solution))
-
-			rlen_avg = numpy.average(route_lengths)
-			rlen_std_dev = numpy.std(route_lengths)
-			results.append(TestResult(cvrp, solver, rlen_avg, rlen_std_dev))
+	# results_df = DataFrame(data = {
+	# 	'customers_count': [],
+	# 	'truck_capacity': [],
+	# 	'truck_route_limit': [],
+	# 	'solver_desc': [],
+	# 	'rlen': [],
+	# 	'rlen_std_dev': []
+	# })
 
 	if not os.path.exists('out'):
 		os.mkdir('out')
@@ -87,7 +105,6 @@ if __name__ == '__main__':
 		plot_data_map[result.customers_count].labels.append(result.solver_desc)
 		plot_data_map[result.customers_count].scores.append(result.rlen_avg)
 
-	# clear plots somehow?
 	for plot_data in plot_data_map.values():
 		plt.clf()
 		plt.bar(x = range(len(plot_data.labels)), height = plot_data.scores, tick_label = plot_data.labels)

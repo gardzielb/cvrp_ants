@@ -7,7 +7,7 @@ import numpy.random
 from networkx import DiGraph
 from tqdm import trange
 
-from .cvrp_solver import CVRPSolver, Truck, CVRPDefinition, TruckMove
+from .cvrp_solver import CVRPSolver, Truck, CVRPDefinition
 from .util import route_len
 
 DEPOT = 'Depot'
@@ -17,7 +17,7 @@ class AntColonyCVRPSolver(CVRPSolver):
 	def __init__(
 			self, iterations: int, ants_per_customer = 1, init_pheromone = 1.0, pheromone_factor = 1.0,
 			evaporation_factor = 0.1, alpha = 1.0, beta = 2.3, rand_chance = 0.1, candidate_fraction = 1.0,
-			permute_routes = False
+			permute_routes = False, show_progress = False
 	):
 		self.ants_per_customer = ants_per_customer
 		self.init_pheromone = init_pheromone
@@ -29,7 +29,12 @@ class AntColonyCVRPSolver(CVRPSolver):
 		self.rand_chance = rand_chance
 		self.candidate_fraction = candidate_fraction
 		self.permute_routes = permute_routes
+		self.show_progress = show_progress
 		self.candidate_set_map = {}
+		self.rng = None
+
+	def set_rng(self, rng: numpy.random.Generator):
+		self.rng = rng
 
 	def get_info(self) -> str:
 		if self.candidate_fraction < 1:
@@ -42,13 +47,17 @@ class AntColonyCVRPSolver(CVRPSolver):
 		g_work = problem.graph.copy()
 		self.__prepare_candidate_lists__(g_work)
 
+		if not self.rng:
+			self.rng = numpy.random.default_rng()
+
 		for e in g_work.edges(data = True):
 			e[2]['pheromone'] = self.init_pheromone
 
 		best_route = None
 		best_route_len = math.inf
 
-		for _ in trange(self.iterations, desc = f'{self.get_info()} | {problem.instance_name}'):
+		iter_range = self.__make_progress_range__(problem) if self.show_progress else range(self.iterations)
+		for _ in iter_range:
 			routes = []
 
 			for ant in range(self.ants_per_customer * len(g_work.nodes)):
@@ -91,11 +100,11 @@ class AntColonyCVRPSolver(CVRPSolver):
 			potential_targets = list(set(graph.neighbors(current_node)) - forbidden)
 
 		node_weights = [self.__ant_decision_factor__(graph, current_node, v) for v in potential_targets]
-		choice = numpy.random.random()
+		choice = self.rng.random()
 
 		if choice < self.rand_chance:
 			w = numpy.array(node_weights) / sum(node_weights)
-			return numpy.random.choice(potential_targets, p = w)
+			return self.rng.choice(potential_targets, p = w)
 		else:
 			max_index = numpy.argmax(node_weights)
 			v = potential_targets[max_index]
@@ -155,3 +164,6 @@ class AntColonyCVRPSolver(CVRPSolver):
 			permuted_solution.add_edge(route[-1], DEPOT, cost = graph.edges[route[-1], DEPOT]['cost'])
 
 		return permuted_solution
+
+	def __make_progress_range__(self, problem: CVRPDefinition):
+		return trange(self.iterations, desc = f'{self.get_info()} | {problem.instance_name}')

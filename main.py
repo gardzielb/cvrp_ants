@@ -15,9 +15,9 @@ if __name__ == '__main__':
 
 	solvers = [
 		GreedyCVRPSolver(),
-		AntColonyCVRPSolver(iterations = 10),
-		AntColonyCVRPSolver(iterations = 10, permute_routes = True),
-		AntColonyCVRPSolver(iterations = 10, candidate_fraction = 0.25)
+		AntColonyCVRPSolver(iterations = 1000, show_progress = True),
+		AntColonyCVRPSolver(iterations = 1000, permute_routes = True, show_progress = True),
+		AntColonyCVRPSolver(iterations = 1000, candidate_fraction = 0.25, show_progress = True)
 	]
 
 	numpy.random.seed(2137)
