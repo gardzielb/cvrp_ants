@@ -27,6 +27,19 @@ class TestResult:
 		self.rlen_std_dev = rlen_std_dev
 
 
+class AvgTestResult:
+	def __init__(
+			self, customers_count: int, truck_capacity: float, truck_route_limit: int, solver_desc: str,
+			rlen_avg: float, rlen_std_dev: float
+	):
+		self.customers_count = customers_count
+		self.truck_capacity = truck_capacity
+		self.truck_route_limit = truck_route_limit
+		self.solver_desc = solver_desc
+		self.rlen_avg = rlen_avg
+		self.rlen_std_dev = rlen_std_dev
+
+
 class PlotData:
 	def __init__(self, filename: str):
 		self.filename = filename
@@ -36,10 +49,10 @@ class PlotData:
 
 cvrp_instances = [
 	'B-n41-k6.vrp',
-	'A-n80-k10.vrp',
-	'A-n69-k9.vrp',
+	# 'A-n80-k10.vrp',
+	# 'A-n69-k9.vrp',
 	'B-n50-k8.vrp',
-	'A-n60-k9.vrp',
+	# 'A-n60-k9.vrp',
 	'A-n33-k5.vrp'
 ]
 
@@ -51,7 +64,7 @@ cvrp_solvers = [
 	AntColonyCVRPSolver(iterations = 2, ants_per_customer = 2)
 ]
 
-SAMPLE_COUNT = 5
+SAMPLE_COUNT = 3
 
 
 def run_test(test_case: Tuple[CVRPDefinition, AntColonyCVRPSolver, numpy.random.Generator]) -> TestResult:
@@ -68,18 +81,42 @@ if __name__ == '__main__':
 	problems = [load_augerat_example(instance) for instance in cvrp_instances]
 	rngs = [numpy.random.default_rng() for _ in range(SAMPLE_COUNT)]
 
+	test_cases = itertools.product(problems, cvrp_solvers, rngs)
+	cases_count = len(problems) * len(cvrp_solvers) * SAMPLE_COUNT
 	process_count = int(sys.argv[1])
-	with multiprocessing.Pool(process_count) as process_pool:
-		results = process_pool.map(run_test, itertools.product(problems, cvrp_solvers, rngs))
 
-	# results_df = DataFrame(data = {
-	# 	'customers_count': [],
-	# 	'truck_capacity': [],
-	# 	'truck_route_limit': [],
-	# 	'solver_desc': [],
-	# 	'rlen': [],
-	# 	'rlen_std_dev': []
-	# })
+	results = []
+	with multiprocessing.Pool(process_count) as process_pool:
+		for result in tqdm(process_pool.imap_unordered(run_test, test_cases), total = cases_count):
+			results.append(result)
+
+	results_df = DataFrame(data = {
+		'customers_count': [result.customers_count for result in results],
+		'truck_capacity': [result.truck_capacity for result in results],
+		'truck_route_limit': [result.truck_route_limit for result in results],
+		'solver_desc': [result.solver_desc for result in results],
+		'rlen': [result.rlen for result in results],
+	})
+
+	df_avg = results_df \
+		.sort_values(by = 'customers_count') \
+		.groupby(['customers_count', 'solver_desc', 'truck_capacity', 'truck_route_limit'])['rlen'] \
+		.agg({ 'mean', 'std' }).reset_index()
+
+	results_avg = [AvgTestResult(
+		record['customers_count'], record['truck_capacity'], record['truck_route_limit'],
+		record['solver_desc'], record['mean'], record['std']
+	) for _, record in df_avg.iterrows()]
+
+	greedy_solver = GreedyCVRPSolver()
+	for cvrp in problems:
+		route = greedy_solver.solve_cvrp(cvrp)
+		result = TestResult(cvrp, greedy_solver, route_len(route))
+		avg_result = AvgTestResult(
+			result.customers_count, result.truck_capacity, result.truck_route_limit,
+			result.solver_desc, result.rlen, 0.0
+		)
+		results_avg.append(avg_result)
 
 	if not os.path.exists('out'):
 		os.mkdir('out')
@@ -90,15 +127,15 @@ if __name__ == '__main__':
 			['Customers count', 'solver', 'truck capacity', 'truck route limit', 'avg route len', 'std deviation']
 		)
 
-		for result in results:
+		for result in results_avg:
 			row = [
 				result.customers_count, result.solver_desc, result.truck_capacity, result.truck_route_limit,
 				result.rlen_avg, result.rlen_std_dev
 			]
 			csv_writer.writerow(row)
 
-	plot_data_map = {}
-	for result in results:
+	plot_data_map = { }
+	for result in results_avg:
 		if result.customers_count not in plot_data_map:
 			plot_data_map[result.customers_count] = PlotData(filename = f'plot_n{result.customers_count}')
 
