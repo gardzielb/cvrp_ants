@@ -24,4 +24,8 @@ def load_augerat_example(instance_name: str) -> CVRPDefinition:
 	cvrp_graph.remove_node('Source')
 	cvrp_graph.remove_node('Sink')
 
-	return CVRPDefinition(instance_name, graph = cvrp_graph, truck_capacity = dataset.max_load)
+	min_truck_count = int(instance_name.rstrip('.vrp').split('-')[2][1:])
+	return CVRPDefinition(
+		instance_name, graph = cvrp_graph, truck_capacity = dataset.max_load,
+		truck_route_limit = 3 * dataset.best_known_solution / min_truck_count
+	)

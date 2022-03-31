@@ -48,23 +48,23 @@ class PlotData:
 
 
 cvrp_instances = [
-	'B-n41-k6.vrp',
-	'A-n80-k10.vrp',
-	'A-n69-k9.vrp',
-	'B-n50-k8.vrp',
+	'A-n33-k5.vrp',
+	# 'B-n41-k6.vrp',
+	# 'B-n50-k8.vrp',
 	'A-n60-k9.vrp',
-	'A-n33-k5.vrp'
+	# 'A-n69-k9.vrp',
+	# 'A-n80-k10.vrp',
 ]
 
 cvrp_solvers = [
 	AntColonyCVRPSolver(iterations = 1000),
-	AntColonyCVRPSolver(iterations = 5000),
-	AntColonyCVRPSolver(iterations = 4000, permute_routes = True),
-	AntColonyCVRPSolver(iterations = 3000, candidate_fraction = 0.25),
-	AntColonyCVRPSolver(iterations = 2500, ants_per_customer = 2)
+	AntColonyCVRPSolver(iterations = 3000),
+	AntColonyCVRPSolver(iterations = 2500, permute_routes = True),
+	AntColonyCVRPSolver(iterations = 2000, candidate_fraction = 0.25),
+	AntColonyCVRPSolver(iterations = 1500, ants_per_customer = 2)
 ]
 
-SAMPLE_COUNT = 15
+SAMPLE_COUNT = 20
 
 
 def run_test(test_case: Tuple[CVRPDefinition, AntColonyCVRPSolver, numpy.random.Generator]) -> TestResult:

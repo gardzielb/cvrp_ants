@@ -9,13 +9,14 @@ from cvrp.util import route_len, draw_route_graph, draw_route_graph_geo
 
 if __name__ == '__main__':
 	problems = [
-		load_augerat_example('P-n16-k8.vrp'),
-		load_augerat_example('A-n69-k9.vrp')
+		# load_augerat_example('P-n16-k8.vrp'),
+		# load_augerat_example('A-n69-k9.vrp')
+		load_augerat_example('B-n50-k8.vrp')
 	]
 
 	solvers = [
 		GreedyCVRPSolver(),
-		AntColonyCVRPSolver(iterations = 1000, show_progress = True),
+		# AntColonyCVRPSolver(iterations = 1000, show_progress = True),
 		AntColonyCVRPSolver(iterations = 1000, permute_routes = True, show_progress = True),
 		AntColonyCVRPSolver(iterations = 1000, candidate_fraction = 0.25, show_progress = True)
 	]

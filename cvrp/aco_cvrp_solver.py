@@ -143,7 +143,7 @@ class AntColonyCVRPSolver(CVRPSolver):
 				route.append(c)
 				c = list(solution.neighbors(c))[0]
 
-			if len(route) < 7:
+			if len(route) < 6:
 				best_len = math.inf
 				for route_perm in itertools.permutations(route):
 					rlen = 0
