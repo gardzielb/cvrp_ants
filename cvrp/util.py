@@ -33,6 +33,7 @@ def draw_route_graph_geo(graph: DiGraph, file: str):
 	x = list(networkx.get_node_attributes(graph, 'x').values())
 	y = list(networkx.get_node_attributes(graph, 'y').values())
 	positions = dict(zip(graph.nodes, list(zip(x, y))))
+	plt.clf()
 	networkx.draw_networkx(graph, positions, with_labels = True)
 	plt.savefig(file)
 

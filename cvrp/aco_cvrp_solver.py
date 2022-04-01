@@ -37,11 +37,15 @@ class AntColonyCVRPSolver(CVRPSolver):
 		self.rng = rng
 
 	def get_info(self) -> str:
+		mods = ''
+		if self.permute_routes:
+			mods += ' M1'
 		if self.candidate_fraction < 1:
-			return f'ACO M2 {self.iterations} it'
-		elif self.permute_routes:
-			return f'ACO M1 {self.iterations} it'
-		return f'ACO {self.iterations} it'
+			mods += ' M2'
+
+		ants_count = '' if self.ants_per_customer == 1 else f' m={self.ants_per_customer}n'
+
+		return f'ACO{mods}{ants_count} {self.iterations} it'
 
 	def solve_cvrp(self, problem: CVRPDefinition) -> DiGraph:
 		g_work = problem.graph.copy()
