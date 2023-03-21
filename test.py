@@ -48,12 +48,12 @@ class PlotData:
 
 
 cvrp_instances = [
-	'A-n33-k5.vrp',
+	# 'A-n33-k5.vrp',
 	# 'B-n41-k6.vrp',
 	# 'B-n50-k8.vrp',
-	'A-n60-k9.vrp',
-	# 'A-n69-k9.vrp',
-	# 'A-n80-k10.vrp',
+	# 'A-n60-k9.vrp',
+	'A-n69-k9.vrp',
+	'A-n80-k10.vrp',
 ]
 
 cvrp_solvers = [
